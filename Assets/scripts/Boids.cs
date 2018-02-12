@@ -90,10 +90,9 @@ public class Boids : MonoBehaviour
 
 
         Quaternion newRotation = Quaternion.FromToRotation(Vector3.forward, direction );
-        float ip = Mathf.Exp(-controller.m_rotationDiffusion* noise*Time.deltaTime);
         if (currentRotation != newRotation)
         {
-            transform.rotation = Quaternion.Lerp(currentRotation, newRotation, 0.3f);
+            transform.rotation = Quaternion.RotateTowards(currentRotation, newRotation,controller.m_rotationDiffusion * Time.deltaTime);
         }
 
        // Debug.Log(identifier + " HAS " + nearbyBoids.Length + " NEIGHBOURS");

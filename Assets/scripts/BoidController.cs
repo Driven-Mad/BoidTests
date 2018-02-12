@@ -26,7 +26,7 @@ public class BoidController : MonoBehaviour
     [Range(1.0f, 2.0f)]
     public float m_velocityVariation = 1.2f;
 
-    [Range(0.001f, 2.0f)]
+    [Range(10f, 100.0f)]
     public float m_rotationDiffusion = 10.0f;
 
     public float m_controllerVelocity = 5.0f;
@@ -82,10 +82,10 @@ public class BoidController : MonoBehaviour
         }
         Vector3 newDirection = (mouse - transform.position);
         newDirection = newDirection.normalized;
-         Quaternion newRotation = Quaternion.FromToRotation(transform.forward, newDirection);
+         Quaternion newRotation = Quaternion.FromToRotation(Vector3.forward, newDirection);
          if (transform.rotation != newRotation)
          {
-             transform.rotation = Quaternion.Slerp(transform.rotation, newRotation, 0.3f);
+             transform.rotation = Quaternion.RotateTowards(transform.rotation, newRotation, m_rotationDiffusion * Time.deltaTime);
          }
 
 
