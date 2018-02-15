@@ -5,14 +5,16 @@ using UnityEngine;
 public class BoidController : MonoBehaviour
 {
 
-    //create global controls here
+    //create public controls here
     public GameObject m_boidPrefab;
 
     public LayerMask m_searchLayer;
 
-    public int m_spawnCount = 10;
+    [Range(5.0f, 20.0f)]
+    public int m_spawnCount = 8;
 
-    public float m_spawnRadius = 4.0f;
+    [Range(4.0f, 20.0f)]
+    public float m_spawnRadius =10.0f;
 
     [Range(5.0f, 60.0f)]
     public float m_destinatiinVariation = 6.0f;
@@ -29,10 +31,21 @@ public class BoidController : MonoBehaviour
     [Range(10f, 100.0f)]
     public float m_rotationDiffusion = 10.0f;
 
-    public float m_controllerVelocity = 5.0f;
+    // private variables here.
+    private float m_controllerVelocity = 5.0f;
 
     Vector3 mouse = new Vector3(0.0f, 0.0f, 0.0f);
     List<Boids> myBoids = new List<Boids>();
+    Vector3 m_controllerDirection;
+    float noiseOffset;
+
+    //Getters and Setters.
+    public float Velocity
+    {
+        get { return m_controllerVelocity; }
+        set { m_controllerVelocity = value; }
+    }
+
 
     void Start()
     {
@@ -41,21 +54,24 @@ public class BoidController : MonoBehaviour
         {
             Spawn();
         }
-         
-
+        m_controllerDirection = Vector3.forward;
+        noiseOffset = Random.value * 10.0f;
     }
 
     void Update()
     {
         Debug.Log(myBoids.Count);
         m_controllerVelocity = 0.0f;
+        m_controllerDirection =  Vector3.forward;
+        float noise = Mathf.PerlinNoise(Time.time, noiseOffset) * 2.0f - 1.0f;
+
         foreach (Boids b in myBoids)
         {
             m_controllerVelocity += b.Velocity;
+            m_controllerDirection += b.Direction;
         }
-
-       
-        m_controllerVelocity /= myBoids.Count;
+        m_controllerVelocity += m_velocity * (1.0f + noise);
+        m_controllerVelocity /= (myBoids.Count +1) ;
 
 
         //COME BACK TO THIS - Trying to get a \/\/\/\ movement along the foward vector. 
@@ -65,7 +81,7 @@ public class BoidController : MonoBehaviour
         transform.Rotate(rotation2);
         */
 
-      
+
 
         if (Input.GetMouseButton(0))
         {
@@ -77,21 +93,22 @@ public class BoidController : MonoBehaviour
             {
                 //get the point of where the mouse hits.
                 mouse = move.point;
-                //set the direction to be where we want to go near the mouse.
             }
         }
-        Vector3 newDirection = (mouse - transform.position);
-        newDirection = newDirection.normalized;
-         Quaternion newRotation = Quaternion.FromToRotation(Vector3.forward, newDirection);
-         if (transform.rotation != newRotation)
-         {
-             transform.rotation = Quaternion.RotateTowards(transform.rotation, newRotation, m_rotationDiffusion * Time.deltaTime);
-         }
+        m_controllerDirection += ((mouse - transform.position));
+       // m_controllerDirection /= ( myBoids.Count );
+        m_controllerDirection = m_controllerDirection.normalized;
+        Quaternion newRotation = Quaternion.FromToRotation(Vector3.forward, m_controllerDirection);
+        if (transform.rotation != newRotation)
+        {
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, newRotation, m_rotationDiffusion * Time.deltaTime);
+        }
 
 
         //Constantly move forward for now. 
         //transform.position += (transform.forward * (m_controllerVelocity * Time.deltaTime));
-        transform.position += (newDirection * (m_controllerVelocity * Time.deltaTime));
+        //transform.position += (m_controllerDirection * (m_controllerVelocity * Time.deltaTime));
+        transform.position = transform.position + transform.forward * (m_controllerVelocity * Time.deltaTime);
     }
 
 
@@ -108,7 +125,7 @@ public class BoidController : MonoBehaviour
 
     {
 
-        Quaternion rotation = new Quaternion(0, 0, 0,0); // Quaternion.Slerp(transform.rotation, Random.rotation, m_rotationDiffusion);
+        Quaternion rotation = new Quaternion(0, 0, 0,0);
 
         GameObject boid = Instantiate(m_boidPrefab, position, rotation) as GameObject;
 

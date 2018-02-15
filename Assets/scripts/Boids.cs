@@ -5,7 +5,7 @@ using UnityEngine;
 public class Boids : MonoBehaviour
 {
     public BoidController controller;
-    public float animationSpeedVariation = 0.2f;
+    public float animationSpeedVariation = 0.5f;
     int identifier;
 
 
@@ -13,22 +13,20 @@ public class Boids : MonoBehaviour
     float randomDestination;
 
     // Use this for initialization
-
-   
-
+    
     float noiseOffset;
-    private float velocity;
+    //Velocity getters and setters 
+    private float m_velocity;
+    private Vector3 m_direction;
+    public Vector3 Direction
+    {
+        get { return m_direction; }
+        set { m_direction = value; }
+    }
     public float Velocity
     {
-        get
-        {
-            return velocity;
-        }
-
-        set
-        {
-            velocity = value;
-        }
+        get { return m_velocity; }
+        set { m_velocity = value; }
     }
 
     void Start()
@@ -86,38 +84,17 @@ public class Boids : MonoBehaviour
         alignment *= average;
         cohesion = (cohesion - currentPosition).normalized;
 
-        Vector3 direction = separation + alignment + cohesion;
+        m_direction = separation + alignment + cohesion;
 
 
-        Quaternion newRotation = Quaternion.FromToRotation(Vector3.forward, direction );
+        Quaternion newRotation = Quaternion.FromToRotation(Vector3.forward, m_direction);
         if (currentRotation != newRotation)
         {
-            transform.rotation = Quaternion.RotateTowards(currentRotation, newRotation,controller.m_rotationDiffusion * Time.deltaTime);
+            transform.rotation = Quaternion.RotateTowards(currentRotation, newRotation, controller.m_rotationDiffusion * Time.deltaTime);
         }
-
-       // Debug.Log(identifier + " HAS " + nearbyBoids.Length + " NEIGHBOURS");
-        /* if (Vector3.Distance(currentPosition, mouse) >= randomDestination)
-         {
-             float velocity = controller.m_velocity * (1.0f + noise * controller.m_velocityVariation);
-             //While the distance between the currentposition and where the mouse clicked
-             //If the transform isn't facing the direction turn towards the direction
-             if (transform.forward != direction)
-             {
-
-                 //Debug.Log("TURNING");
-                 Vector3 tpos = currentPosition + (direction + transform.right.normalized) * (velocity * Time.deltaTime);
-                 transform.position = tpos;
-             }
-             else
-             {
-                //    Debug.Log("FORWARD");
-                 Vector3 tpos = currentPosition + direction * (velocity * Time.deltaTime);
-                 transform.position = tpos;
-             }
-         }*/
        
-        velocity = controller.m_velocity * (1.0f + noise * controller.m_velocityVariation);
-        transform.position  = currentPosition + transform.forward * (velocity * Time.deltaTime);
+        m_velocity = controller.m_velocity * (1.0f + noise * controller.m_velocityVariation);
+        transform.position  = currentPosition + transform.forward * (m_velocity * Time.deltaTime);
 
 
     }
