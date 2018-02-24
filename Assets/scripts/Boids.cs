@@ -6,11 +6,6 @@ public class Boids : MonoBehaviour
 {
     public BoidController controller;
     public float animationSpeedVariation = 0.5f;
-    int identifier;
-
-
-    Vector3 mouse = new Vector3(0.0f, 0.0f, 0.0f);
-    float randomDestination;
 
     // Use this for initialization
     
@@ -38,8 +33,6 @@ public class Boids : MonoBehaviour
         {
             animator.speed = Random.Range(-1.0f, 1.0f) * animationSpeedVariation + 1.0f;
         }
-        randomDestination = Random.Range(3.0f, 3.0f + controller.m_destinatiinVariation);
-        identifier = GetInstanceID();
     }
 
 
@@ -59,10 +52,8 @@ public class Boids : MonoBehaviour
 
         //get some random noise. 
         float noise = Mathf.PerlinNoise(Time.time, noiseOffset) * 2.0f - 1.0f;
-     
-        //Slowly rotate towards where the mouse points to (No snap)
 
-        //Get an array of all the nearby boids.
+        //Get an array of all the nearby boids based on the layer set in the controller.
         Collider[] nearbyBoids = Physics.OverlapSphere(currentPosition, controller.m_neighbourDistance, controller.m_searchLayer);
         int neighbours = nearbyBoids.Length;
         foreach (Collider b in nearbyBoids)

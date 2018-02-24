@@ -8,16 +8,17 @@ public class BoidController : MonoBehaviour
     //create public controls here
     public GameObject m_boidPrefab;
 
+    public GameObject m_searchArea;
+
     public LayerMask m_searchLayer;
+
+    public LayerMask m_POILayer;
 
     [Range(5.0f, 20.0f)]
     public int m_spawnCount = 8;
 
     [Range(4.0f, 20.0f)]
-    public float m_spawnRadius =10.0f;
-
-    [Range(5.0f, 60.0f)]
-    public float m_destinatiinVariation = 6.0f;
+    public float m_spawnRadius =10.0f;  
 
     [Range(0.1f, 20.0f)]
     public float m_velocity = 6.0f;
@@ -33,12 +34,14 @@ public class BoidController : MonoBehaviour
 
     // private variables here.
     private float m_controllerVelocity = 5.0f;
-
+    Vector3 randomLocation = new Vector3(0.0f, 0.0f, 0.0f);
     Vector3 mouse = new Vector3(0.0f, 0.0f, 0.0f);
     List<Boids> myBoids = new List<Boids>();
     Vector3 m_controllerDirection;
     float noiseOffset;
 
+    [Range(10f, 100.0f)]
+    public float changeLocationTimer = 10.0f;
     //Getters and Setters.
     public float Velocity
     {
@@ -62,7 +65,7 @@ public class BoidController : MonoBehaviour
     {
         Debug.Log(myBoids.Count);
         m_controllerVelocity = 0.0f;
-        m_controllerDirection =  Vector3.forward;
+        m_controllerDirection = Vector3.forward;
         float noise = Mathf.PerlinNoise(Time.time, noiseOffset) * 2.0f - 1.0f;
 
         foreach (Boids b in myBoids)
@@ -71,7 +74,7 @@ public class BoidController : MonoBehaviour
             m_controllerDirection += b.Direction;
         }
         m_controllerVelocity += m_velocity * (1.0f + noise);
-        m_controllerVelocity /= (myBoids.Count +1) ;
+        m_controllerVelocity /= (myBoids.Count + 1);
 
 
         //COME BACK TO THIS - Trying to get a \/\/\/\ movement along the foward vector. 
@@ -80,9 +83,18 @@ public class BoidController : MonoBehaviour
         Vector3 rotation2 = new Vector3(0, wave * Time.deltaTime , 0);
         transform.Rotate(rotation2);
         */
-
-
-
+        changeLocationTimer -= Time.deltaTime;
+        if (changeLocationTimer <= 0.0f)
+        { 
+            Vector3 areaPosition = m_searchArea.transform.position;
+            Vector3 areaScale = m_searchArea.transform.localScale;
+            Vector3 max = areaPosition + areaScale;
+            Vector3 min = areaPosition - areaScale;
+            randomLocation = new Vector3(Random.Range(min.x, max.x), Random.Range(min.y, max.y), Random.Range(min.z, max.z));
+            changeLocationTimer = 10.0f;
+        }
+        /////////////!MOUSE POINT AND CLICK!/////////////////////
+        /*
         if (Input.GetMouseButton(0))
         {
             //Cast a ray
@@ -96,7 +108,11 @@ public class BoidController : MonoBehaviour
             }
         }
         m_controllerDirection += ((mouse - transform.position));
-       // m_controllerDirection /= ( myBoids.Count );
+        */
+        /////////////!MOUSE POINT AND CLICK!/////////////////////
+        m_controllerDirection += ((randomLocation - transform.position));
+
+        // m_controllerDirection /= ( myBoids.Count );
         m_controllerDirection = m_controllerDirection.normalized;
         Quaternion newRotation = Quaternion.FromToRotation(Vector3.forward, m_controllerDirection);
         if (transform.rotation != newRotation)
@@ -105,9 +121,7 @@ public class BoidController : MonoBehaviour
         }
 
 
-        //Constantly move forward for now. 
-        //transform.position += (transform.forward * (m_controllerVelocity * Time.deltaTime));
-        //transform.position += (m_controllerDirection * (m_controllerVelocity * Time.deltaTime));
+        //Constantly move towards and past the point of interest.  
         transform.position = transform.position + transform.forward * (m_controllerVelocity * Time.deltaTime);
     }
 
